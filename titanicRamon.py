@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[2]:
+
+
 # # Predicción Titanic
 
 # 1. Importar Librerías
@@ -17,6 +20,9 @@ import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
 from os import getcwd
 
 
+# In[3]:
+
+
 # 2. Importar librerías de sklearn para los métodos
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
@@ -24,10 +30,15 @@ from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 
 
+# In[4]:
+
+
 # 2. Importar los datos
 train_data = pd.read_csv('/Users/ramon/OneDrive/Master Big Data/Python/UD3_IntroAprendizajeAutomatico/titanic/train.csv', sep = ',')
 test_data = pd.read_csv('/Users/ramon/OneDrive/Master Big Data/Python/UD3_IntroAprendizajeAutomatico/titanic/test.csv', sep = ',')
 
+
+# In[5]:
 
 
 # 3. Entender los datos
@@ -45,144 +56,160 @@ print("\n\n")
 test_data.info()
 
 
+# In[6]:
+
 
 print("Estadísticas del dataSet train: \n\n", train_data.describe())
 print("\n\n Estadísticas del dataSet test: \n\n", test_data.describe())
 
 
-#Calcular total mujeres
-femaleData = train_data.loc[train_data['Sex']=='female']
-femaleDF = pd.DataFrame(femaleData)
-femaleTotal = femaleDF['Sex'].count()
-
-#Calcular total hombres
-maleData = train_data.loc[train_data['Sex']=='male']
-maleDF = pd.DataFrame(maleData)
-maleTotal = maleDF['Sex'].count()
-
-# Mostrar datos
-print("Total Mujeres: ", femaleTotal)
-print("Total Hombres: ", maleTotal)
+# In[7]:
 
 
-# Calcular mujeres que sobrevivieron
-femaleSurvived = train_data.loc[train_data['Sex']=='female']['Survived'].sum()
-
-# Calcular hombres que sobrevivieron
-maleSurvived = train_data.loc[train_data['Sex']=='male']['Survived'].sum()
-
-
-print("\nMujeres que sobrevivieron: ", femaleSurvived)
-print("Hombre que sobrevivieron: ", maleSurvived)
-
-print("\n% Mujeres que sobrevivieron: ", femaleSurvived/femaleTotal)
-print("% Hombres que sobrevivieron: ", maleSurvived/maleTotal)
+#Convierto los datos de sexos en números
+# Cuidado que si vuelvo a ejecutar esto me da error al ya haberlo convertido
+train_data['Sex'].replace(['female','male'],[0,1],inplace=True)
+test_data['Sex'].replace(['female','male'],[0,1],inplace=True)
 
 
-# 4. Limpiado de datos
+# In[8]:
 
 
-# Convertir el tipo de datos de Sex de cadena/objeto a numérico 
-train_data["Sex"].replace(['female','male'],[0,1],inplace=True)
-test_data["Sex"].replace(['female','male'],[0,1],inplace=True)
+train_data.info()
 
-# tras cambiar los datos, comentamos estas instrucciones para no volver a hacer el cambio,
-# ya que dará error
 
-# Calcular media de edad para poner esta en los datos que faltan
-print(train_data["Age"].mean())
-print(test_data["Age"].mean())
+# In[9]:
+
+
+# ASI NO FUNCIONA - train_data.select('Embarked').distinct()
+
+# ASI SI FUNCIONA - Muestra todos los valores distintos de la columna embarked
+train_data["Embarked"].unique()
+
+
+# In[10]:
+
+
+#Combierto los valores de Embarked a número
+train_data['Embarked'].replace(['Q','S', 'C'],[0,1,2],inplace=True)
+test_data['Embarked'].replace(['Q','S', 'C'],[0,1,2],inplace=True)
+
+
+# In[11]:
+
+
+pd.isnull(train_data).sum()
+
+
+# In[12]:
+
+
+## Valor medo de 'Age'
+
+
+# In[13]:
+
 
 promedio = 30
+
+# Reemplazo los valores que no existen  (nan) por el promedio calculado anteriormente
 train_data['Age'] = train_data['Age'].replace(np.nan, promedio)
 test_data['Age'] = test_data['Age'].replace(np.nan, promedio)
 
+
+# In[14]:
+
+
+## Ya no hay valores perdidos en Age
 pd.isnull(train_data).sum()
 
-# Eliminar columna Cabin
-train_data.drop(['Cabin'], axis =1, inplace=True)
-test_data.drop(['Cabin'], axis =1, inplace=True)
+
+# In[15]:
+
+
+# Elimino la columna 'Cabin' ya que tiene muchos datos perdidos
+train_data.drop(['Cabin'], axis = 1, inplace=True)
+test_data.drop(['Cabin'], axis = 1, inplace=True)
+
+
+# In[16]:
+
 
 pd.isnull(train_data).sum()
 
-# Elimino las columnas que no considero necesarias
-train_data = train_data.drop(['PassengerId','Name','Ticket','Embarked'], axis=1)
-test_data =  test_data.drop(['Name','Ticket','Embarked'], axis=1)
+
+# In[17]:
 
 
-# Eliminamos las filaes con datos perdidos, que como son muy pocas (2) las podemos eliminar por completo
+# Falta eliminar las dos filas de que tienen datos perdidos de 'Embarked' y que son únicamente dos
+# así que no hace falta reeemplazarlos
+
 train_data.dropna(axis=0, how='any', inplace=True)
 test_data.dropna(axis=0, how='any', inplace=True)
 
-train_data.head()
 
-print('\n Datos que faltan en train: ',pd.isnull(train_data).sum())
-print('\nDatos que faltan en test: ',pd.isnull(test_data).sum())
-
-print('\n Tipos de datos de train: ',train_data.info())
-print('\nTipos de datos de test: ',test_data.info())
-
-print('\n Cabecera de train: ',train_data.head())
-print('\nCabecera de test: ',test_data.head())
+# In[18]:
 
 
-# 5. Aplicación de los algoritmos
+print(train_data.head())
+print(test_data.head())
 
-# Separo la columna con la información de los sobrevivientes
+
+# In[19]:
+
+
+## Elimino las columnas que no considero necesarias
+train_data = train_data.drop(['PassengerId','Name','Ticket'], axis=1)
+test_data = test_data.drop(['PassengerId','Name','Ticket'], axis=1)
+
+
+# In[21]:
+
+
+print(train_data.head())
+print(test_data.head())
+
+
+# In[22]:
+
+
+## Uso de Algoritmos
+
+#Separo la columna con la información de los sobrevivientes
 X = np.array(train_data.drop(['Survived'], 1))
-Y = np.array(train_data['Survived'])
+y = np.array(train_data['Survived'])
 
 
-# Separo los datos de train en entrenamiento y prueba para probar los algoritmos
-x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.2)
+#Separo los datos de "train" en entrenamiento y prueba para probar los algoritmos
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
 
 
-## Regresión Logística
+##Regresión logística
 logreg = LogisticRegression()
-logreg.fit(x_train,y_train)
-y_pred = logreg.predict(x_test)
+logreg.fit(X_train, y_train)
+Y_pred = logreg.predict(X_test)
+print('Precisión Regresión Logística:')
+print(logreg.score(X_train, y_train))
 
-print('Precisión Regresión Logística: ')
-print(logreg.score(x_train,y_train))
+
+# In[23]:
 
 
-## Support Vector Machine
-# Definir método del algoritmo
+##Support Vector Machines
 svc = SVC()
-svc.fit(x_train, y_train)
-y_pred = svc.predict(x_test)
-print('Precisión Soporte de Vectores: ')
-print(svc.score(x_train,y_train))
+svc.fit(X_train, y_train)
+Y_pred = svc.predict(X_test)
+print('Precisión Soporte de Vectores:')
+print(svc.score(X_train, y_train))
 
 
+# In[24]:
 
-## K neighbors
+
+##K neighbors
 knn = KNeighborsClassifier(n_neighbors = 3)
-knn.fit(x_train, y_train)
-y_pred = knn.predict(x_test)
-
-print('Precisión K neighbors: ')
-print(knn.score(x_train,y_train))
-
-
-
-
-# 6. Predicción utilizando los modelos
-
-
-
-
-## Support Vector Machine
-prediccion_svc = svc.predict(test_data.drop('PassengerId',axis=1))
-out_svc = pd.DataFrame({'PassengerId':ids,'Survived':prediccion_svc})
-print('Precisión Regresión Logística: ')
-print(out_svc.head())
-
-
-# K neigbors
-
-prediccion_knn = knn.predict(test_data.drop('PassengerId',axis=1))
-out_knn = pd.DataFrame({'PassengerId':ids,'Survived':prediccion_knn})
-print('Precisión Regresión Logística: ')
-print(out_knn.head())
+knn.fit(X_train, y_train)
+Y_pred = knn.predict(X_test)
+print('Precisión Vecinos más Cercanos:')
+print(knn.score(X_train, y_train))
 
